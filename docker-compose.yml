@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  back:
+    build:
+      context: ./json-server
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    volumes:
+      - /app/node_modules
+      - ./json-server:/app
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - /app/node_modules
+      - ./front:/app
+    depends_on:
+      - back
