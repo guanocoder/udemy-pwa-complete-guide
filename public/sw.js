@@ -1,7 +1,10 @@
+const STATIC_CACHE = "staticStuffV1";
+const DYNAMIC_CACHE = "dynamicStuffV1";
+
 self.addEventListener("install", function(event) {
     console.log("[Service Worker] Installing service worker...", event);
-    event.waitUntil(caches.open("staticStuff").then((cache) => {
-        console.log("[Service Worker] Precaching App Shell into 'staticStuff'");
+    event.waitUntil(caches.open(STATIC_CACHE).then((cache) => {
+        console.log(`[Service Worker] Precaching App Shell into '${STATIC_CACHE}'`);
         return cache.addAll([
             "/",
             "/src/js/app.js",
@@ -23,6 +26,14 @@ self.addEventListener("install", function(event) {
 
 self.addEventListener("activate", function(event) {
     console.log("[Service Worker] Activating service worker...", event);
+    event.waitUntil(
+        caches.keys().then(keys => Promise.all(keys.map(key => {
+            if (key !== STATIC_CACHE && key !== DYNAMIC_CACHE) {
+                console.log(`[Service Worker] deleting cache '${key}'`);
+                return caches.delete(key);
+            }
+        })))
+    );
     return self.clients.claim();
 });
 
@@ -35,8 +46,8 @@ self.addEventListener("fetch", function(event) {
                 return response;
             } else {
                 return fetch(event.request).then(fetchResponse => {
-                    return caches.open("dynamicStuff").then((cache) => {
-                        console.log("[Service Worker] Caching into 'dynamicStuff'");
+                    return caches.open(DYNAMIC_CACHE).then((cache) => {
+                        console.log(`[Service Worker] Caching into '${DYNAMIC_CACHE}'`);
                         cache.put(event.request, fetchResponse.clone());
                         return fetchResponse;
                     });
