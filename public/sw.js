@@ -19,7 +19,7 @@ self.addEventListener("install", function(event) {
             "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css",
             // Fonts from CDNs
             "https://fonts.gstatic.com/s/roboto/v29/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2",
-            "https://fonts.gstatic.com/s/materialicons/v118/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
+            "https://fonts.gstatic.com/s/materialicons/v120/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2"
         ]);
     }));
 });
@@ -47,12 +47,14 @@ self.addEventListener("fetch", function(event) {
             } else {
                 return fetch(event.request).then(fetchResponse => {
                     return caches.open(DYNAMIC_CACHE).then((cache) => {
-                        console.log(`[Service Worker] Caching into '${DYNAMIC_CACHE}'`);
-                        cache.put(event.request, fetchResponse.clone());
+                        // console.log(`[Service Worker] Caching into '${DYNAMIC_CACHE}'`);
+                        // cache.put(event.request, fetchResponse.clone());
                         return fetchResponse;
                     });
                 });
             }
         })
+        // to get rid of uncaught promise errors
+        .catch(error => {})
     );
 });
