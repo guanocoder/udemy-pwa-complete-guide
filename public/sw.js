@@ -7,6 +7,7 @@ self.addEventListener("install", function(event) {
         console.log(`[Service Worker] Precaching App Shell into '${STATIC_CACHE}'`);
         return cache.addAll([
             "/",
+            "/offline.html",
             "/src/js/app.js",
             "/src/js/feed.js",
             "/src/js/material.min.js",
@@ -54,7 +55,7 @@ self.addEventListener("fetch", function(event) {
                 });
             }
         })
-        // to get rid of uncaught promise errors
-        .catch(error => {})
+        // in case of absent connection
+        .catch(error => caches.open(STATIC_CACHE).then(cache => cache.match('/offline.html')))
     );
 });
