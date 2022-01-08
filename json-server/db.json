@@ -1,3 +1,8 @@
 {
-    "posts": []
+    "posts": [{
+        "id": "first-post",
+        "image": "http://localhost:5000/images/sf-boat.jpg",
+        "location": "In San Francisco",
+        "title": "Max's awesome trip to SF! righteous dude!"
+    }]
 }
