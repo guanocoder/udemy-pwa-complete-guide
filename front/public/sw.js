@@ -1,5 +1,26 @@
+importScripts("/src/js/idb.js");
+
 const STATIC_CACHE = "staticStuffV1";
 const DYNAMIC_CACHE = "dynamicStuffV1";
+
+const db = idb.openDB("posts-store", 1, {
+    upgrade(db, oldVersion, newVersion, transaction) {
+        console.log("[indexedDB] upgrade!");
+        db.createObjectStore("posts", { keyPath: "id" });    
+    },
+    blocked() {
+        console.log("[indexedDB] blocked!");
+
+    },
+    blocking() {
+        console.log("[indexedDB] blocking!");
+
+    },
+    terminated() {
+        console.log("[indexedDB] terminated!");
+
+    }
+});
 
 self.addEventListener("install", function(event) {
     console.log("[Service Worker] Installing service worker...", event);
@@ -11,6 +32,7 @@ self.addEventListener("install", function(event) {
             "/src/js/app.js",
             "/src/js/feed.js",
             "/src/js/material.min.js",
+            "/src/js/idb.js",
             "/src/css/app.css",
             "/src/css/feed.css",
             "/src/images/main-image.jpg",
@@ -38,24 +60,45 @@ self.addEventListener("activate", function(event) {
     return self.clients.claim();
 });
 
-self.addEventListener("fetch", function(event) {
+self.addEventListener("fetch", async function(event) {
     // console.log("[Service Worker] Fetching...", event);
-    event.respondWith(
-        caches.match(event.request).then(response => {
-            if (response) {
-                console.log("[Service Worker] Fetching from cache", event);
-                return response;
-            } else {
-                return fetch(event.request).then(fetchResponse => {
-                    return caches.open(DYNAMIC_CACHE).then((cache) => {
-                        console.log(`[Service Worker] Caching into '${DYNAMIC_CACHE}'`);
-                        cache.put(event.request, fetchResponse.clone());
-                        return fetchResponse;
+
+    if (event.request.url.indexOf('localhost:5000/data/posts') > -1) {
+        event.respondWith(fetch(event.request).then(fetchResponse => {
+            const clonedResponse = fetchResponse.clone();
+            clonedResponse.json().then(data => {
+                if (!Array.isArray(data)) data = [data];
+                db.then(db => {
+                    let t = db.transaction("posts", "readwrite");
+                    let store = t.objectStore("posts");
+                    data.forEach(post => {
+                        store.put(post);
                     });
-                });
-            }
-        })
-        // in case of absent connection
-        .catch(error => caches.open(STATIC_CACHE).then(cache => cache.match('/offline.html')))
-    );
+                    return t.complete;    
+                }).catch(error => {
+                    console.log("Error while writing to IndexDB", error);
+                });    
+            });
+            return fetchResponse;
+        }));
+    } else {
+        event.respondWith(
+            caches.match(event.request).then(response => {
+                if (response) {
+                    console.log("[Service Worker] Fetching from cache", event);
+                    return response;
+                } else {
+                    return fetch(event.request).then(fetchResponse => {
+                        return caches.open(DYNAMIC_CACHE).then((cache) => {
+                            console.log(`[Service Worker] Caching into '${DYNAMIC_CACHE}'`);
+                            cache.put(event.request, fetchResponse.clone());
+                            return fetchResponse;
+                        });
+                    });
+                }
+            })
+            // in case of absent connection
+            .catch(error => caches.open(STATIC_CACHE).then(cache => cache.match('/offline.html')))
+        );
+    }
 });
