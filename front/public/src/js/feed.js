@@ -84,7 +84,7 @@ function loadPosts(postsData) {
 
 getPost('first-post');
 
-function getPost(postId) {
+function getPost() {
 
     let checkCache = Promise.resolve([]);
     if ('indexedDB' in window) {
@@ -97,7 +97,7 @@ function getPost(postId) {
         if ((Array.isArray(data) && data.length > 0) || (!Array.isArray(data) && typeof(data) === 'object' && data !== null)) {
             return data;
         } else {
-            return fetch(`http://localhost:5000/data/posts/${postId}`).then(function(res) {
+            return fetch(`http://localhost:5000/data/posts`).then(function(res) {
                 return res.json();
             });
         }

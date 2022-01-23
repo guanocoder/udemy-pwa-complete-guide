@@ -4,5 +4,10 @@
         "image": "http://localhost:5000/images/sf-boat.jpg",
         "location": "In San Francisco",
         "title": "Max's awesome trip to SF! righteous dude!"
+    }, {
+        "id": "second-post",
+        "image": "http://localhost:5000/images/sf-boat.jpg",
+        "location": "Ceasar says No!",
+        "title": "Planet of the Apes: origins"
     }]
 }
