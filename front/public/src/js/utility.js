@@ -40,3 +40,22 @@ function readData(storeName) {
         return store.getAll();
     });
 }
+
+function clearData(storeName) {
+    return db.then(db => {
+        let t = db.transaction(storeName, "readwrite");
+        let store = t.objectStore(storeName);
+        store.clear();
+        return t.complete;
+    });
+}
+
+function deleteItem(storeName, id) {
+    return db.then(db => {
+        let t = db.transaction(storeName, "readwrite");
+        let store = t.objectStore(storeName);
+        store.delete(id);
+        return t.complete;
+    });
+}
+
