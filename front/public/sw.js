@@ -1,26 +1,8 @@
 importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
 
 const STATIC_CACHE = "staticStuffV1";
 const DYNAMIC_CACHE = "dynamicStuffV1";
-
-const db = idb.openDB("posts-store", 1, {
-    upgrade(db, oldVersion, newVersion, transaction) {
-        console.log("[indexedDB] upgrade!");
-        db.createObjectStore("posts", { keyPath: "id" });    
-    },
-    blocked() {
-        console.log("[indexedDB] blocked!");
-
-    },
-    blocking() {
-        console.log("[indexedDB] blocking!");
-
-    },
-    terminated() {
-        console.log("[indexedDB] terminated!");
-
-    }
-});
 
 self.addEventListener("install", function(event) {
     console.log("[Service Worker] Installing service worker...", event);
@@ -68,16 +50,9 @@ self.addEventListener("fetch", async function(event) {
             const clonedResponse = fetchResponse.clone();
             clonedResponse.json().then(data => {
                 if (!Array.isArray(data)) data = [data];
-                db.then(db => {
-                    let t = db.transaction("posts", "readwrite");
-                    let store = t.objectStore("posts");
-                    data.forEach(post => {
-                        store.put(post);
-                    });
-                    return t.complete;    
-                }).catch(error => {
+                writeData("posts", data).catch(error => {
                     console.log("Error while writing to IndexDB", error);
-                });    
+                });
             });
             return fetchResponse;
         }));

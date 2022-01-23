@@ -74,7 +74,7 @@ function createCard(data) {
 
 function loadPosts(postsData) {
     if (Array.isArray(postsData)) {
-        for (let i = 0; i < postsData.Data.length; data++) {
+        for (let i = 0; i < postsData.length; i++) {
             createCard(postsData[i]);
         }
     } else {
@@ -85,10 +85,23 @@ function loadPosts(postsData) {
 getPost('first-post');
 
 function getPost(postId) {
-    return fetch(`http://localhost:5000/data/posts/${postId}`).then(function(res) {
-        return res.json();
+
+    let checkCache = Promise.resolve([]);
+    if ('indexedDB' in window) {
+        checkCache = readData('posts').then(data => {
+            return data;
+        });
+    }
+
+    return checkCache.then(function(data) {
+        if ((Array.isArray(data) && data.length > 0) || (!Array.isArray(data) && typeof(data) === 'object' && data !== null)) {
+            return data;
+        } else {
+            return fetch(`http://localhost:5000/data/posts/${postId}`).then(function(res) {
+                return res.json();
+            });
+        }
     }).then(function(data) {
-        console.log("|-> fetched the following data", data);
         loadPosts(data);
-    });    
+    });
 }
